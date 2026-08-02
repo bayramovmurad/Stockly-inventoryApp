@@ -8,9 +8,12 @@ async function main() {
         where: { email: "demo@example.com" },
         update: {},
         create: {
+            id: "demo-user-123",
             email: "demo@example.com",
             name: "Demo User",
             emailVerified: true,
+            createdAt: new Date(),
+            updatedAt: new Date(),
         },
     });
 
@@ -19,7 +22,7 @@ async function main() {
         data: Array.from({ length: 25 }).map((_, i) => ({
             userId: demoUser.id,
             name: `Product ${i + 1}`,
-            price: (Math.random() * 90 + 10).toFixed(2),
+            price: parseFloat((Math.random() * 90 + 10).toFixed(2)),
             quantity: Math.floor(Math.random() * 20),
             lowStockAt: 5,
             createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * (i * 5)),

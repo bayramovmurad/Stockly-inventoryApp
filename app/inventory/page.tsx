@@ -5,11 +5,13 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Package2, Plus, Search } from "lucide-react";
 import Pagination from "@/components/Pagination";
+import ToastMessage from "@/components/ToastMessage"; 
+
 
 export default async function InventoryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; page?: string, toast: string }>;
 }) {
   const user = await getCurrentUser();
   const userId = user.id;
@@ -38,6 +40,12 @@ export default async function InventoryPage({
 
   return (
     <div className="min-h-screen bg-slate-950">
+      {params?.toast === "success" && (
+        <ToastMessage
+          type="success"
+          message="Inventory created successfully!"
+        />
+      )}
       <Sidebar currentPath="/inventory" />
 
       <main className="ml-72 min-h-screen bg-slate-50">
@@ -246,49 +254,21 @@ export default async function InventoryPage({
                 Showing {(page - 1) * pageSize + (items.length ? 1 : 0)}-
                 {(page - 1) * pageSize + items.length} of {totalCount}
               </p>
-
-              <div className="flex items-center gap-2">
-                <Link
-                  href={`/inventory?q=${encodeURIComponent(q)}&page=${Math.max(
-                    1,
-                    page - 1,
-                  )}`}
-                  className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-                    page <= 1
-                      ? "pointer-events-none bg-slate-100 text-slate-400"
-                      : "bg-slate-900 text-white hover:bg-slate-800"
-                  }`}>
-                  Previous
-                </Link>
-
-                <Link
-                  href={`/inventory?q=${encodeURIComponent(q)}&page=${Math.min(
-                    totalPages,
-                    page + 1,
-                  )}`}
-                  className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
-                    page >= totalPages
-                      ? "pointer-events-none bg-slate-100 text-slate-400"
-                      : "bg-slate-900 text-white hover:bg-slate-800"
-                  }`}>
-                  Next
-                </Link>
-              </div>
+              {totalPages > 1 && (
+                <div className="">
+                  <Pagination
+                    currentPage={page}
+                    totalPages={totalPages}
+                    baseUrl="/inventory"
+                    searchParams={{
+                      q,
+                      pageSize: String(pageSize),
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
-          {totalPages > 1 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <Pagination
-                currentPage={page}
-                totalPages={totalPages}
-                baseUrl="/inventory"
-                searchParams={{
-                  q,
-                  pageSize: String(pageSize),
-                }}
-              />
-            </div>
-          )}
         </div>
       </main>
     </div>

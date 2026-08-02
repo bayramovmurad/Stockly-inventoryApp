@@ -1,9 +1,25 @@
+"use client";
+
 import Sidebar from "@/components/Sidebar";
 import { createProduct } from "@/lib/actions/products";
 import Link from "next/link";
 import { PackagePlus } from "lucide-react";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
-export default async function AddProductPage() {
+export default function AddProductPage() {
+  const router = useRouter();
+
+  const handleSubmit = async (formData: FormData) => {
+    const result = await createProduct(formData);
+
+    if (result.success) {
+      router.push("/inventory?toast=success");
+    } else {
+      toast.error(result.message, { toastId: result.message });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-950">
       <Sidebar currentPath="/add-product" />
@@ -38,7 +54,8 @@ export default async function AddProductPage() {
                 </div>
               </div>
 
-              <form className="space-y-6" action={createProduct}>
+              {/* action-u dəyişib handleSubmit etdik */}
+              <form className="space-y-6" action={handleSubmit}>
                 <div>
                   <label
                     htmlFor="name"
@@ -161,7 +178,6 @@ export default async function AddProductPage() {
                 <h3 className="text-lg font-semibold text-slate-900">
                   Suggested defaults
                 </h3>
-
                 <div className="mt-4 grid gap-3">
                   <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                     <p className="text-sm font-medium text-slate-900">
@@ -171,7 +187,6 @@ export default async function AddProductPage() {
                       Set the currently available stock before publishing.
                     </p>
                   </div>
-
                   <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                     <p className="text-sm font-medium text-slate-900">
                       Price format
@@ -180,7 +195,6 @@ export default async function AddProductPage() {
                       Use decimal values like 24.99 for consistent totals.
                     </p>
                   </div>
-
                   <div className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                     <p className="text-sm font-medium text-slate-900">
                       Threshold

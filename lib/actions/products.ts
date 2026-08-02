@@ -1,9 +1,9 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { getCurrentUser } from "../auth";
 import { prisma } from "../prisma";
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 
 const ProductSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -20,8 +20,10 @@ export async function deleteProduct(formData: FormData) {
   await prisma.product.deleteMany({
     where: { id: id, userId: user.id },
   });
+  revalidatePath("/inventory");
 }
 
+// Yeni yaratma (create) funksiyamız (Yönləndirməsiz, sadəcə obyekt qaytarır)
 export async function createProduct(formData: FormData) {
   const user = await getCurrentUser();
 
@@ -34,17 +36,22 @@ export async function createProduct(formData: FormData) {
   });
 
   if (!parsed.success) {
-    throw new Error("Validation failed");
+    return { success: false, message: "Validation failed. Please check the inputs." };
   }
 
   try {
     await prisma.product.create({
       data: { ...parsed.data, userId: user.id },
     });
-  } catch (error) {
-    console.error("Failed to create product:", error);
-    throw new Error("Failed to create product.");
-  }
 
-  redirect("/inventory");
+
+    return { success: true, message: "Inventory created successfully" };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+
+    if (error.code === "P2002") {
+      return { success: false, message: "This SKU already exists. Please use a different one." };
+    }
+    return { success: false, message: "An error occurred. Please try again." };
+  }
 }
