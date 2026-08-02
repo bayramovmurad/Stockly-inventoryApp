@@ -1,3 +1,4 @@
+import ProductsChart from "@/components/ProductsChart";
 import Sidebar from "@/components/Sidebar";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
@@ -181,6 +182,10 @@ export default async function DashboardPage() {
                     Last 12 weeks activity
                   </p>
                 </div>
+              </div>
+
+              <div className="h-72">
+                <ProductsChart data={weeklyProductsData} />
               </div>
             </div>
 
