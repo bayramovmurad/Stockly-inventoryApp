@@ -4,6 +4,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { Package2, Plus, Search } from "lucide-react";
+import Pagination from "@/components/Pagination";
 
 export default async function InventoryPage({
   searchParams,
@@ -15,6 +16,8 @@ export default async function InventoryPage({
 
   const params = await searchParams;
   const q = (params.q ?? "").trim();
+  const page = Math.max(1, Number(params.page ?? 1));
+  const pageSize = 5;
 
   const where = {
     userId,
@@ -26,9 +29,12 @@ export default async function InventoryPage({
     prisma.product.findMany({
       where,
       orderBy: { createdAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     }),
   ]);
 
+  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -75,9 +81,9 @@ export default async function InventoryPage({
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
               <p className="text-sm text-slate-500">Page</p>
               <p className="mt-3 text-3xl font-bold text-slate-900">
-               3
+                {page}
                 <span className="ml-1 text-lg font-medium text-slate-400">
-                  /4
+                  / {totalPages}
                 </span>
               </p>
             </div>
@@ -212,7 +218,7 @@ export default async function InventoryPage({
                               await deleteProduct(formData);
                             }}>
                             <input type="hidden" name="id" value={product.id} />
-                            <button className="font-medium bg-red-50 px-3 rounded-full text-rose-600 transition hover:text-rose-700">
+                            <button className="font-medium text-rose-600 transition hover:text-rose-700">
                               Delete
                             </button>
                           </form>
@@ -234,7 +240,55 @@ export default async function InventoryPage({
                 </p>
               </div>
             )}
+
+            <div className="flex flex-col gap-4 border-t border-slate-200 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-slate-500">
+                Showing {(page - 1) * pageSize + (items.length ? 1 : 0)}-
+                {(page - 1) * pageSize + items.length} of {totalCount}
+              </p>
+
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/inventory?q=${encodeURIComponent(q)}&page=${Math.max(
+                    1,
+                    page - 1,
+                  )}`}
+                  className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
+                    page <= 1
+                      ? "pointer-events-none bg-slate-100 text-slate-400"
+                      : "bg-slate-900 text-white hover:bg-slate-800"
+                  }`}>
+                  Previous
+                </Link>
+
+                <Link
+                  href={`/inventory?q=${encodeURIComponent(q)}&page=${Math.min(
+                    totalPages,
+                    page + 1,
+                  )}`}
+                  className={`rounded-xl px-4 py-2 text-sm font-medium transition ${
+                    page >= totalPages
+                      ? "pointer-events-none bg-slate-100 text-slate-400"
+                      : "bg-slate-900 text-white hover:bg-slate-800"
+                  }`}>
+                  Next
+                </Link>
+              </div>
+            </div>
           </div>
+          {totalPages > 1 && (
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                baseUrl="/inventory"
+                searchParams={{
+                  q,
+                  pageSize: String(pageSize),
+                }}
+              />
+            </div>
+          )}
         </div>
       </main>
     </div>
